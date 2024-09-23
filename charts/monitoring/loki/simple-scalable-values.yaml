@@ -47,19 +47,17 @@ chunksCache:
 resultsCache:
   enabled: false
 
-deploymentMode: SimpleScalable
-
 backend:
   replicas: 2
-  persistence:
-    size: "5Gi"
-    storageClass: ceph-block-ssd
+  # persistence:
+  #   size: "5Gi"
+  #   storageClass: ceph-block-ssd
 
 write:
   replicas: 2
-  persistence:
-    size: "5Gi"
-    storageClass: ceph-block-ssd
+  # persistence:
+  #   size: "5Gi"
+  #   storageClass: ceph-block-ssd
 
 read:
   replicas: 2
