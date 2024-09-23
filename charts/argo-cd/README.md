@@ -1,0 +1,1 @@
+helm install my-argo-cd argo/argo-cd --version 7.6.1

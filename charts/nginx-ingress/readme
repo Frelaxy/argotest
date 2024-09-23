@@ -1,0 +1,1 @@
+helm upgrade --install nginx-ingress oci://ghcr.io/nginxinc/charts/nginx-ingress -n nginx-ingress --create-namespace -f values.yaml

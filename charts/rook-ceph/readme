@@ -1,0 +1,4 @@
+helm repo add rook-release https://charts.rook.io/release
+
+helm upgrade --install rook-ceph rook-release/rook-ceph -n rook-ceph --create-namespace -f ceph-operator-values.yaml
+helm upgrade --install rook-ceph-cluster rook-release/rook-ceph-cluster -n rook-ceph --create-namespace -f ceph-cluster-values.yaml

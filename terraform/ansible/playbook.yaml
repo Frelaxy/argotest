@@ -1,0 +1,85 @@
+---
+
+- name: waiting for ssh avalaible
+  gather_facts: false
+  hosts: all
+  roles:
+    - waiting-for-ssh-avalaible
+
+- name: base configure ubuntu
+  hosts: all
+  become: true
+  roles:
+    - waiting-for-ssh-avalaible
+    - add-ssh-keys
+    - set-proxy
+    - set-sync-date
+    - resize-volume
+    - disable-swap
+    - install-docker-and-containerd
+    - set-proxy-containerd-and-docker
+    - install-kubelet-kubadm-kubectl
+    - reboot
+    - waiting-for-ssh-avalaible
+
+
+- name: configure master-node
+  hosts: master_node
+  become: true
+  roles:
+    - init-master-node
+    - generate-control-panel-join-command
+    - generate-woker-join-command
+    - configure-kubectl
+    - install-helm
+    - setup-kube-vip
+
+
+- name: configure contorl-nodes
+  hosts: control_nodes
+  become: true
+  roles:
+    - join-control-node-to-cluster
+    - configure-kubectl
+    - install-helm
+
+
+- name: configure loadbalancer haproxy and join worker-ceph-nodes
+  hosts: worker_ceph_nodes
+  become: true
+  roles:
+    - join-worker-node-to-cluster
+
+
+- name: configure-kubelet-for-kube-vip
+  hosts: all
+  become: true
+  roles:
+    - configure-kubelet-for-kube-vip
+
+
+- name: prepere disk ceph node
+  hosts: ceph_nodes
+  become: true
+  roles: 
+    - preper-ceph-disk
+
+
+- name: taints and label nodes and install helm pkgs
+  hosts: master_node
+  become: true
+  roles:
+    - taints-label-CIDR-for-nodes
+    - print-kubectl-config
+
+# - name: configure-local-kubectl
+#   hosts: localhost
+#   become: false
+#   roles:
+#     # - configure-local-kubectl
+
+- name: ssh no password
+  hosts: all
+  become: true
+  roles:
+    - ssh-no-pass

@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: gitlab-ssh
+  namespace: jenkins
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "basicSSHUserPrivateKey"
+  annotations:
+# description - can not be a label as spaces are not allowed
+    "jenkins.io/credentials-description" : "gitlab ssh key"
+type: Opaque
+stringData:
+  username: jenkins-deploy
+  privateKey: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEpAIBAAKCAQEAtBQBjmYYN5+2kiIKIwLNyvyEl8DZAKweakblNXd38fBFyd1G
+    pQMIyQrZLq+ocPkV8BTEPWEht4XApYCvb0uAh45ww5Q6PA0QY+hbX5b89v4iiMwI
+    jmxNU8kd3BqrH9GN0k7m7FbfQ5jylFOMiluTgou8SRDA5kFbUZu6wYOliOoxCHup
+    bQkRvRDIHnznHMW2azRYC+CUjUSVsTX5tOtbpMZAVcGfBrgm9kSzs5fGYJTAzU96
+    8EabQpjI/7jytNngRkI60uH/waD6AQz8Ts7TR7uEhfdtH/6bMp4GAJTtpYz+pmBx
+    MsqP1L5476j0N0U6Cl2SXyzir+vOfNa7BkqFVwIDAQABAoIBAQCQ70UtYhh9tGsS
+    BJmaAii2BjWFmi5NrzovmW3jcYs1S4gv54tzRhTtEnEodTKh8qhoeZ5UNHgZqGoc
+    Co2oiuEguVEi6ItSR8V4U8wvDGv/Mx2Cco00bBB0rfr9au1uB5AYw25yq5y4YEJl
+    hTUpKnl36ZWaTQSkjde8wBU4qQczQMbRsOId69VnjH4Zqg9k+nBtBkaf6f0LURFA
+    qQxkC2TX1uxpwUeJDWDTPjPGa4GZraXjkJK0vlwfQU/SQJXalhmpDdLh4a1J94vf
+    Rfnkjashz2KkSVEM9Af0vUkzkQ7QqPmxk4jzxdaDacxpr/O318/B2bu8xnGS88pW
+    P9kpkbUpAoGBAO30LSC0x/Zj8OX1I/3fVyUTmOEBpVP5Xmf2Sk3F0BLWmRxnrCVq
+    3RwMoYzwKA3rmmWbVG6oNFzq8H6T7sjWh3aTvbtcTdJ1asZmtEfVIO5dEs5NTxKP
+    XnOeLKsHdcdleE/4OfHGmu5+KtejbD0ItxUuqVQKO2LcepogrfuzLh39AoGBAMG8
+    L5IReUwjF7ZLziw5zqhKnwO2rY3JzgkHyCAZQRF9k+ixBnoMgd9cRz+ILPFvOH2y
+    XAHL9zw5LlmJWXpRHR3yBXnl2BqLyp9zQiBZKfZLT6VKIAQ48IqLtxzp+lqxNC8L
+    RUevZrWnMvnv6PWO5YuPzg4+BmGxw1OnfLpUGgbjAoGAG7qJi7clWiP5TYLMh+f/
+    yrVG6ml7r5ZuluTPcdKsVZWmT/YQzGdwjrU2GiteL4kV++Mm6qI1P+Ks1cM9XzAI
+    pxu+T1gJRY4jPC15sqk2ZjB4YYwGu93zHrv+7os3AV5kr8T4U6FWKpaPPYOwuEgM
+    ta4zUzTCCNoye0V1oNAXfq0CgYAouHRLQG79aNbgEzjnpNLiHqUjs67xAXzT+xW+
+    YXCCy6FeJG9XEe/uUcgL+4RuztDR4r5iBkwWFXK/kRYElq4HEErEX2I32jAhqak5
+    gWRHh3bbKCRonss4Y7t+UVO04lA0nyrVsXFmNxmI3Tta+ckXt4c5CSJwQFvs5mRa
+    CblavwKBgQCK8K39D0lXhPFK8ddnBCimTZKddytLuNGXfu7YgmotysZ1h+fTmpt9
+    fHDm3Smr5wJLYTJKzfbG0dYVRHjd88LfP7Q8yNxYcFRi+lWf1qa3njFxHpNiXA5L
+    4Ys/iPNNw1rtKA1AcfKdEGCg8b3Hfqj3h4EauUih0RmPfUmmsHOCEw==
+    -----END RSA PRIVATE KEY-----

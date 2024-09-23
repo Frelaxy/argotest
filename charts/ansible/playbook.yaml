@@ -1,0 +1,10 @@
+---
+
+- name: upgrade helm charts
+  hosts: localhost
+  become: false
+  roles:
+    - install-helm-base-charts
+    - configure-s3-buckets
+    - install-helm-loki-promtail-thanos
+    # - install-helm-jenkins

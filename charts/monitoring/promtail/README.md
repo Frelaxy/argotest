@@ -1,0 +1,1 @@
+helm install promtail -n monitoring grafana/promtail -f values.yaml

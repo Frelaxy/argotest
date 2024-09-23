@@ -1,0 +1,31 @@
+---
+
+- name: Add chart repo grafana/loki
+  kubernetes.core.helm_repository:
+    name: grafana
+    repo_url: "https://grafana.github.io/helm-charts"
+
+- name: Deploy loki
+  kubernetes.core.helm:
+    name: loki
+    chart_ref: grafana/loki
+    release_namespace: monitoring
+    create_namespace: true
+    update_repo_cache: true
+    values_files:
+      - /Users/kirylmasliukou/Documents/kubernetes/charts/monitoring/loki/values.yaml
+
+
+- name: Deploy install promtail
+  kubernetes.core.helm:
+    name: promtail
+    chart_ref: grafana/promtail
+    release_namespace: monitoring
+    create_namespace: true
+    update_repo_cache: true
+    values_files:
+      - /Users/kirylmasliukou/Documents/kubernetes/charts/monitoring/promtail/values.yaml
+
+
+- name: Deploy thanos from yaml
+  command: kubectl create -f /Users/kirylmasliukou/Documents/kubernetes/charts/monitoring/thanos/

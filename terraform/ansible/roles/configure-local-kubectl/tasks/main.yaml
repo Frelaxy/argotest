@@ -1,0 +1,8 @@
+---
+
+- name: configure local kubectl
+  become: false
+  local_action:
+    module: copy
+    src: ./kubectl_config
+    dest: ~/.kube/config

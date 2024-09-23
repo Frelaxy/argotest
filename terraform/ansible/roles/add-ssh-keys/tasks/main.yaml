@@ -1,0 +1,43 @@
+---
+
+- name: add ssh key and create user Kiryl
+  become: true
+  ansible.builtin.shell: |
+    USER='kiryl.masliukou'
+    useradd -m "$USER"
+    mkdir -p /home/"$USER"/.ssh
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDImdQTc9Tf//swcI7mRzOrHav6nOpDZqRZJqLzJK9DUkHAOOgm52yb6RCNE6MWL2qb2ViCmLF/2RYI9pzqDx0KZJC8ntFWATEA++97WS5zcwZGKoowdAtuz9P8hTwd4z0EmB8yOCxXuSlyLWC/UqTC9lLjMdMhtq/AN9+Yq3W0U7GuIu+x4bAtnrTchLrC8OqWWk5CcygHdqA1Qwh5PYIQC5qdZ3cfZNwGA/bN2AdPPGsu8sVuukITqYr/AHY+OxtmadyZwIKYcW3m4lUKz/ZdCJ3sbMwt37UM1dacZtorFX4GXheFeTVmwnEKo+LQiNCeOXMVgUYk3cEOU44tx2hREhkB9IvUFNAGy2kbRsV7zlCZOqTi55nifgQHx/PUW4tVoiGGECwPylsbmf0oHHKJGezFzKBBwmAM9RgkBir3CVOUVM+6D/+8qszbNkWOoQqEJSfFDcKQHymIVCrgVLxC17ITrlSH81taVQ8PfngB2QT/KzkTvAnLX6isRavpVgk= minsk\kirill.masliukov@DEVOPS011" >> /home/$USER/.ssh/authorized_keys
+    chown "$USER":"$USER" /home/"$USER" -R
+    chmod 600 /home/"$USER"/.ssh/authorized_keys
+    chmod 700 /home/"$USER"/.ssh
+    usermod -G sudo "$USER"
+    usermod -s /bin/bash "$USER"
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/kiryl_masliukou
+
+- name: add ssh key and create user Vladimir
+  become: true
+  ansible.builtin.shell: |
+    USER=v.abramchuk
+    useradd -m "$USER"
+    mkdir -p /home/"$USER"/.ssh
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDCQdCeJZDP5FgC0GnrN/5mc9wiFY6urLkKi9tl7hdF8UjwSjY/hoEyCo5Pcr5ZrLaey8o6MjUlyvorE9IeelRo+pZNKfbSRFyxVcKbOOA5eIqbZKB3i/9Yr0o/0C8SOsZCBvqN/csSDAXLHNhapqSZLx3JmIvBxIIPBxquWDdNp7Npnubp0159902re6sj5yPbaevi+EcgyZ0ALaJnAOg74r7tH8TG2cmlkhxQEQI+cM/MgxCKYB3yAR4U2FQXhZjI/XkSQrdRNTqk9EuvUzKt4o/efoIWqQuzz+T1dIDij1wnuMULrG47t7sb8wJhQ9TEplGyhh461fQR5cyUEpQ9Uz2VCzqJ1Goq6OdOshDfo7UW/V33On9803cpYiDSLp/CaFXlkrGAelNqulkUYF1FSiYeZD5B6xZyxt16jEzAgIpW3Xszzi8QWpP7X2OWnPQ782CytRxicQwfKRS4xdNNJrOTd6RF0pD0YmnkCvmeGt1rBCqWQXR73LirvCVPe1s= v.abramchuk@ansible" >> /home/"$USER"/.ssh/authorized_keys
+    chown "$USER":"$USER" /home/"$USER" -R
+    chmod 600 /home/"$USER"/.ssh/authorized_keys
+    chmod 700 /home/"$USER"/.ssh
+    usermod -G sudo "$USER"
+    usermod -s /bin/bash "$USER"
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/v_abramchuk
+  
+- name: add ssh key and create user Ruslan
+  become: true
+  ansible.builtin.shell: |
+    USER=ruslan.bulavenka
+    useradd -m "$USER"
+    mkdir -p /home/"$USER"/.ssh
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCqHGOqzzdOzgLRzilV7P2fTj7MlFFDzWK7dN761c4iXN4ShgCsZG2WdqhrusvPZhmmdY9/w3vxANmY0gFbDje7dm+4SOXr6Ju+nVgIcB7TMCGsyUeMKM8oaSnPwP+YVY5/hBAnfKd4H3wR0q/4S6SiGlQGxphkP9+1z3VZREMeiEHbRuh0Btwiqs30uXkom7fzmw+7XwxwzL7OIgx3drE5QLb1PBIJ8kups9Gaw2VnY0BCB2yT1CZxBE5DKUs0JGBx4iMwL0LGF5nOA6G1XHuPWKVnsB9xOoG6uXV22zynQ7ZH+4jeAH/AX5zTiHaTIpRx8lKKnT1b5rRGHczTNhan8v/Rnch9u13lGzyxuCMzbNromEf9Za66QgBx1RvA+R7qzqQdocOoQhy1ZIvG1stF855lbihg+p3QS8qjowfn/0g187SpLChkWXF1nzrfI7vB0hFEhOrpxrpePdGDzfbziMIk0MxTaL/hHde9CZTxF02ZXPJ+bnnuLFajsll8MQk= ruslan.bulavenka@idcru-gitlab" >> /home/"$USER"/.ssh/authorized_keys
+    chown "$USER":"$USER" /home/"$USER" -R
+    chmod 600 /home/"$USER"/.ssh/authorized_keys
+    chmod 700 /home/"$USER"/.ssh
+    usermod -G sudo "$USER"
+    usermod -s /bin/bash "$USER"
+    echo '$USER ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ruslan_bulavenka

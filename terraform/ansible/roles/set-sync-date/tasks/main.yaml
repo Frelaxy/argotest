@@ -1,0 +1,9 @@
+---
+
+- name: set sync date
+  become: true
+  ansible.builtin.shell: |
+    timedatectl set-timezone Europe/Moscow
+    echo 'NTP=192.168.44.25' >> /etc/systemd/timesyncd.conf
+    echo 'FallbackNTP=192.168.55.35' >> /etc/systemd/timesyncd.conf
+    systemctl restart systemd-timesyncd

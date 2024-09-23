@@ -1,0 +1,7 @@
+---
+
+- name: prepere ceph disk sdb
+  shell: dd if=/dev/zero of="/dev/sdb" bs=1M count=100 oflag=direct,dsync
+
+- name: prepere ceph disk sdc
+  shell: dd if=/dev/zero of="/dev/sdc" bs=1M count=100 oflag=direct,dsync

@@ -1,0 +1,25 @@
+--- 
+
+- name: Read device information (always use unit when probing)
+  become: true
+  community.general.parted: device=/dev/sda unit=MiB
+  register: sda_info
+
+- name: LVM disk extension
+  become: true
+  community.general.parted:
+    device: /dev/sda
+    number: "{{ sda_info.partitions | length }}"
+    label: gpt
+    part_end: "100%"
+    resize: true
+    state: present
+
+- name: resize volume
+  become: true
+  ansible.builtin.shell: |
+    pvresize /dev/sda3
+    lvscan
+    lvextend /dev/mapper/ubuntu--vg-ubuntu--lv -l +100%FREE
+    df -h
+    resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv

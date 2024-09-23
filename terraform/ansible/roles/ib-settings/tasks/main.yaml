@@ -1,0 +1,22 @@
+---
+
+- name: add ssh key ib
+  become: true
+  ansible.builtin.shell: |
+    USER=su_sel_greenbone_linux
+    useradd -m "$USER"
+    mkdir -p /home/"$USER"/.ssh
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC5kBEXt3tAa4ZW4PkPBenMdKRkGy4WV/kdToqFZlJk/hWsh0fIliFAfLQB4Otv+iYGieXNynoXR8jwhhEyo7RXETE892sasnwyLSL5+lm/ANVm3UePEDIzQkYc5B2XUwmuXHsgelqZT44SNjoB5QQp+kz4sGGgrNgPuFnQk1BMcEMysWb0CgGeNBT1Mb4+92/XBgap3hkvHfMvIoOk81PolDbvyCGKppzhSbRGsHPuSMcGZ9OQZGh+Ajl+Vz1rcXfNIDMZuXB67yvK1rfTBghXP7gI3RtWAkDm3HqSTH7IAiZCUmELBAUc4zx0WeLHkSHigfQn/jnKc4zyPOJ9l9xgidODF9I90ZyPYxtO2Uy/0dUs1fTnMMEuqS0MRMoN483SGOEd3RqL2efnG2B/nTHMXDittUwQ7+IK7bLFxOn/bXIcYR0QLKFpOE4+zBGy2vAaNKKsJ64FEHEa+9eLEY+LSJzr8fO/Xu8mLtgZkZp4TkDg2q/OZxBuUK8Gx70AxCM=" >> /home/"$USER"/.ssh/authorized_keys
+    chown "$USER":"$USER" /home/"$USER" -R
+    chmod 600 /home/"$USER"/.ssh/authorized_keys
+    chmod 700 /home/"$USER"/.ssh
+    usermod -G sudo "$USER"
+    usermod -s /bin/bash "$USER"
+
+- name: set ib configs
+  become: true
+  ansible.builtin.shell: |
+    iptables -I INPUT 1 -p icmp --icmp-type timestamp-request -j DROP
+    iptables -I OUTPUT -p icmp --icmp-type timestamp-reply -j DROP
+    echo "net.ipv4.tcp_timestamps = 0" >> /etc/sysctl.conf
+    sysctl -p

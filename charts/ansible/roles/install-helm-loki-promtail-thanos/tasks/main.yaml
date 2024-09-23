@@ -1,0 +1,49 @@
+---
+- name: get charts path
+  shell: pwd | sed s/ansible//
+  register: charts_path
+
+- name: Deploy prometheus-grafana
+  kubernetes.core.helm:
+    name: monitoring
+    chart_ref: prometheus-community/kube-prometheus-stack
+    release_namespace: monitoring
+    create_namespace: true
+    force: true
+    update_repo_cache: true
+    values_files:
+      - "{{ charts_path.stdout_lines[0] }}monitoring/prometheus-grafana/values.yaml"
+  
+- name: Add chart repo grafana/loki
+  kubernetes.core.helm_repository:
+    name: grafana
+    repo_url: "https://grafana.github.io/helm-charts"
+
+- name: Deploy loki
+  kubernetes.core.helm:
+    name: loki
+    chart_ref: grafana/loki
+    release_namespace: monitoring
+    create_namespace: true
+    update_repo_cache: true
+    values_files:
+      - "{{ charts_path.stdout_lines[0] }}monitoring/loki/values.yaml"
+
+
+- name: Deploy install promtail
+  kubernetes.core.helm:
+    name: promtail
+    chart_ref: grafana/promtail
+    release_namespace: monitoring
+    create_namespace: true
+    update_repo_cache: true
+    values_files:
+      - "{{ charts_path.stdout_lines[0] }}monitoring/promtail/values.yaml"
+
+
+- name: Deploy thanos
+  command: helm upgrade --install thanos oci://registry-1.docker.io/bitnamicharts/thanos -n thanos -f "{{ charts_path.stdout_lines[0] }}monitoring/thanos/values.yaml" --create-namespace
+
+
+# - name: Deploy thanos from yaml
+#   command: kubectl apply -f "{{ charts_path.stdout_lines[0] }}monitoring/thanos/"

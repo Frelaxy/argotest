@@ -1,0 +1,32 @@
+---
+
+- name: create config containerd
+  shell: |
+    touch ~/containerd-config.toml
+    echo 'version = 2
+          [plugins]
+            [plugins."io.containerd.grpc.v1.cri"]
+            [plugins."io.containerd.grpc.v1.cri".containerd]
+                [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+                  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+                    runtime_type = "io.containerd.runc.v2"
+                    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+                      SystemdCgroup = true' >> ~/containerd-config.toml
+    cp ~/containerd-config.toml /etc/containerd/config.toml
+    rm ~/containerd-config.toml
+
+- name: confing containerd service
+  shell: |
+    sed -i '/Service/a Environment="HTTPS_PROXY=http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"' /lib/systemd/system/containerd.service
+    sed -i '/Service/a Environment="HTTP_PROXY=http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"' /lib/systemd/system/containerd.service
+    sed -i "/Service/a Environment=\"NO_PROXY="$no_proxy"\"" /lib/systemd/system/containerd.service
+    systemctl daemon-reload
+    systemctl restart containerd
+
+- name: confing docker service
+  shell: |
+    sed -i '/Service/a Environment="HTTPS_PROXY=http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"' /lib/systemd/system/docker.service
+    sed -i '/Service/a Environment="HTTP_PROXY=http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"' /lib/systemd/system/docker.service
+    sed -i "/Service/a Environment=\"NO_PROXY="$no_proxy"\"" /lib/systemd/system/docker.service
+    systemctl daemon-reload
+    systemctl restart docker

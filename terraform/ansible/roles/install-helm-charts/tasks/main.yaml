@@ -1,0 +1,90 @@
+---
+
+- name: Add chart repo tigera operator (networking)
+  kubernetes.core.helm_repository:
+    name: projectcalico
+    repo_url: "https://docs.tigera.io/calico/charts"
+
+- name: Deploy tigera operator (networking)
+  kubernetes.core.helm:
+    name: calico
+    chart_ref: projectcalico/tigera-operator 
+    release_namespace: tigera-operator
+    create_namespace: true
+    update_repo_cache: true
+    values_files:
+      - /Users/kirylmasliukou/Documents/kubernetes/charts/network-calico/values.yaml
+
+
+- name: Add chart repo metrics server
+  kubernetes.core.helm_repository:
+    name: metrics-server
+    repo_url: "https://kubernetes-sigs.github.io/metrics-server/"
+
+- name: Deploy metrics server
+  kubernetes.core.helm:
+    name: metrics-server
+    chart_ref: metrics-server/metrics-server
+    release_namespace: metrics-server
+    create_namespace: true
+    update_repo_cache: true
+    values:
+      replicas: 2
+      args: 
+        - --kubelet-insecure-tls
+
+
+- name: Deploy nginx-ingress
+  command: helm upgrade --install nginx-ingress oci://ghcr.io/nginxinc/charts/nginx-ingress -n nginx-ingress --create-namespace --set controller.kind=daemonset --set "controller.service.externalIPs={192.168.55.64,192.168.55.65,192.168.55.66,192.168.55.73}" --set "controller.tolerations[0].operator=Exists,controller.tolerations[0].effect=NoSchedule,controller.tolerations[0].key=node-role.kubernetes.io/control-plane"
+
+
+- name: Add chart repo prometheus-grafana
+  kubernetes.core.helm_repository:
+    name: prometheus-community
+    repo_url: "https://prometheus-community.github.io/helm-charts"
+
+- name: Deploy prometheus-grafana
+  kubernetes.core.helm:
+    name: monitoring
+    chart_ref: prometheus-community/kube-prometheus-stack
+    release_namespace: monitoring
+    create_namespace: true
+    update_repo_cache: true
+    values_files:
+      - /Users/kirylmasliukou/Documents/kubernetes/charts/monitoring/prometheus-grafana/values.yaml
+
+- name: Add chart repo rook-ceph
+  kubernetes.core.helm_repository:
+    name: rook-release
+    repo_url: "https://charts.rook.io/release"
+
+- name: Deploy rook-ceph operator
+  kubernetes.core.helm:
+    name: rook-ceph
+    chart_ref: rook-release/rook-ceph
+    release_namespace: rook-ceph
+    create_namespace: true
+    wait: true
+    update_repo_cache: true
+    values_files:
+      - /Users/kirylmasliukou/Documents/kubernetes/charts/rook-ceph/ceph-operator-values.yaml
+
+- name: Deploy custom ssd pools
+  command: kubectl apply -f /Users/kirylmasliukou/Documents/kubernetes/charts/rook-ceph/custom-mgr-ssd-pool.yaml
+ 
+- name: Deploy rook-ceph-cluster
+  kubernetes.core.helm:
+    name: rook-ceph-cluster
+    chart_ref: rook-release/rook-ceph-cluster
+    release_namespace: rook-ceph
+    create_namespace: true
+    wait: true
+    update_repo_cache: true
+    values_files:
+      - /Users/kirylmasliukou/Documents/kubernetes/charts/rook-ceph/ceph-cluster-values.yaml
+ 
+- name: add tls cert for s3
+  command: kubectl apply -f /Users/kirylmasliukou/Documents/kubernetes/charts/rook-ceph/wildcart-idcollect-ru-tls.yaml
+
+- name: add monitoring settings and buckets
+  command: kubectl create -f /Users/kirylmasliukou/Documents/kubernetes/charts/monitoring/manifests-monitoring-settings/

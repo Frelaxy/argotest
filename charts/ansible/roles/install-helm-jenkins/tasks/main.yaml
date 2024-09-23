@@ -1,0 +1,23 @@
+---
+
+- name: get charts path
+  shell: pwd | sed s/ansible//
+  register: charts_path
+  
+- name: Add chart repo jenkins
+  kubernetes.core.helm_repository:
+    name: jenkins
+    repo_url: "https://charts.jenkins.io"
+
+- name: Deploy jenkins
+  kubernetes.core.helm:
+    name: jenkins
+    chart_ref: jenkins/jenkins
+    release_namespace: jenkins
+    create_namespace: true
+    update_repo_cache: true
+    values_files:
+      - "{{ charts_path.stdout_lines[0] }}jenkins/values.yaml"
+
+- name: Deploy jenkins settings
+  command: kubectl apply -f "{{ charts_path.stdout_lines[0] }}jenkins/settings/"

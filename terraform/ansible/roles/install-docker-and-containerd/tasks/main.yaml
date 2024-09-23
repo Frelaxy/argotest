@@ -1,0 +1,70 @@
+---
+
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+  register: apt_get_status
+  until: apt_get_status is success
+  retries: 60
+  delay: 10
+
+- name: Install packages that allow apt to be used over HTTPS
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+  register: apt_get_status
+  until: apt_get_status is success
+  retries: 60
+  delay: 10
+
+- name: Add an apt signing key for Docker
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add apt repository for stable version
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+    state: present
+
+- name: Install docker and its dependecies
+  apt: 
+    # name: "{{ packages }}"
+    state: present
+    update_cache: yes
+    pkg:
+    - docker-ce 
+    - docker-ce-cli 
+    - containerd.io
+  register: apt_get_status
+  until: apt_get_status is success
+  retries: 60
+  delay: 10
+
+- name: create config containerd
+  shell: |
+    touch ~/containerd-config.toml
+    echo 'version = 2
+          [plugins]
+            [plugins."io.containerd.grpc.v1.cri"]
+            [plugins."io.containerd.grpc.v1.cri".containerd]
+                [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+                  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+                    runtime_type = "io.containerd.runc.v2"
+                    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+                      SystemdCgroup = true' >> ~/containerd-config.toml
+    cp ~/containerd-config.toml /etc/containerd/config.toml
+    rm ~/containerd-config.toml
+
+- name: Restart containerd
+  service:
+    name: containerd
+    daemon_reload: yes
+    state: restarted

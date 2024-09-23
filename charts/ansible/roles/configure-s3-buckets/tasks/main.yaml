@@ -1,0 +1,88 @@
+---
+- name: get charts path
+  shell: pwd | sed s/ansible//
+  register: charts_path
+
+- name: Pause for 5 minutes to build app cache
+  ansible.builtin.pause:
+    minutes: 5
+
+- name: get s3 thanos-prometheus-bucket name
+  command: kubectl get objectbucketclaim thanos-prometheus-bucket -n thanos -o jsonpath="{['spec']['bucketName']}"
+  register: thanos_bucket_name
+
+- name: get s3 thanos-prometheus-bucket access_key
+  command: kubectl -n thanos get secret thanos-prometheus-bucket -o jsonpath="{['data']['AWS_ACCESS_KEY_ID']}"
+  register: thanos_bucket_access_key
+
+- name: get s3 hanos-prometheus-bucket secret_key
+  command: kubectl -n thanos get secret thanos-prometheus-bucket -o jsonpath="{['data']['AWS_SECRET_ACCESS_KEY']}"
+  register: thanos_bucket_secret_key
+
+- name: configure thanos config thanos-prometheus-bucket
+  copy:
+    dest: "{{ charts_path.stdout_lines[0] }}monitoring/thanos/thanos-config/thanos-storage-config.yaml"
+    content: |
+      type: s3
+      config:
+        bucket: {{ thanos_bucket_name.stdout_lines[0] }}
+        endpoint: s3.idcollect.ru
+        region: us-east-1
+        access_key: {{ thanos_bucket_access_key.stdout_lines[0] | b64decode }}
+        secret_key: {{ thanos_bucket_secret_key.stdout_lines[0] | b64decode }}
+
+- name: create thanos config secret
+  shell: |
+    kubectl -n thanos create secret generic thanos-objectstorage --from-file=objstore.yml="{{ charts_path.stdout_lines[0] }}monitoring/thanos/thanos-config/thanos-storage-config.yaml"
+    kubectl -n monitoring create secret generic thanos-objectstorage --from-file=objstore.yml="{{ charts_path.stdout_lines[0] }}monitoring/thanos/thanos-config/thanos-storage-config.yaml"
+
+- name: get s3 loki-chunks-bucket name
+  command: kubectl get objectbucketclaim loki-chunks-bucket -n monitoring -o jsonpath="{['spec']['bucketName']}"
+  register: loki_chunks_bucket_name
+
+- name: get s3 loki-admin-bucket name
+  command: kubectl get objectbucketclaim loki-admin-bucket -n monitoring -o jsonpath="{['spec']['bucketName']}"
+  register: loki_admin_bucket_name
+
+- name: get s3 loki-ruler-bucket name
+  command: kubectl get objectbucketclaim loki-ruler-bucket -n monitoring -o jsonpath="{['spec']['bucketName']}"
+  register: loki_ruler_bucket_name
+
+- name: get s3 loki_chunks_bucket access_key
+  command: kubectl -n monitoring get secret loki-chunks-bucket -o jsonpath="{['data']['AWS_ACCESS_KEY_ID']}"
+  register: loki_chunks_bucket_access_key
+
+- name: get s3 loki_chunks_bucket secret_key
+  command: kubectl -n monitoring get secret loki-chunks-bucket -o jsonpath="{['data']['AWS_SECRET_ACCESS_KEY']}"
+  register:  loki_chunks_bucket_secret_key
+
+- name: configure loki s3 buckets config secretAccessKey
+  ansible.builtin.lineinfile:
+    dest: "{{ charts_path.stdout_lines[0] }}monitoring/loki/values.yaml"
+    search_string: 'secretAccessKey'
+    line: "      secretAccessKey: {{ loki_chunks_bucket_secret_key.stdout_lines[0] | b64decode }}"
+
+- name: configure loki s3 buckets config accessKeyId
+  ansible.builtin.lineinfile:
+    dest: "{{ charts_path.stdout_lines[0] }}monitoring/loki/values.yaml"
+    search_string: 'accessKeyId'
+    line: "      accessKeyId: {{ loki_chunks_bucket_access_key.stdout_lines[0] | b64decode }}"
+
+- name: configure loki s3 bucket name chunks
+  ansible.builtin.lineinfile:
+    dest: "{{ charts_path.stdout_lines[0] }}monitoring/loki/values.yaml"
+    search_string: "chunks:"
+    line: "      chunks: {{ loki_chunks_bucket_name.stdout_lines[0] }}"
+
+- name: configure loki s3 bucket name admin
+  ansible.builtin.lineinfile:
+    dest: "{{ charts_path.stdout_lines[0] }}monitoring/loki/values.yaml"
+    search_string: "admin:"
+    line: "      admin: {{ loki_admin_bucket_name.stdout_lines[0] }}"
+
+- name: configure loki s3 bucket name ruler
+  ansible.builtin.lineinfile:
+    dest: "{{ charts_path.stdout_lines[0] }}monitoring/loki/values.yaml"
+    search_string: "ruler:"
+    line: "      ruler: {{ loki_ruler_bucket_name.stdout_lines[0] }}"
+

@@ -1,0 +1,19 @@
+---
+
+- name: label and taint node
+  shell: |
+    kubectl taint nodes s-sel-idc-kuber-ceph-1 ceph-node=osd:NoExecute
+    kubectl taint nodes s-sel-idc-kuber-ceph-2 ceph-node=osd:NoExecute
+    kubectl taint nodes s-sel-idc-kuber-ceph-3 ceph-node=osd:NoExecute
+    kubectl label node s-sel-idc-kuber-ceph-1 node-role.kubernetes.io/ceph-node=osd
+    kubectl label node s-sel-idc-kuber-ceph-2 node-role.kubernetes.io/ceph-node=osd
+    kubectl label node s-sel-idc-kuber-ceph-3 node-role.kubernetes.io/ceph-node=osd
+    kubectl label node s-sel-idc-kuber-worker-1 node-role.kubernetes.io/worker=worker
+    kubectl label node s-sel-idc-kuber-worker-2 node-role.kubernetes.io/worker=worker
+    kubectl label node s-sel-idc-kuber-worker-3 node-role.kubernetes.io/worker=worker
+    kubectl patch node s-sel-idc-kuber-ceph-1 -p '{"spec":{"podCIDR":"100.100.8.0/23"}}'
+    kubectl patch node s-sel-idc-kuber-ceph-2 -p '{"spec":{"podCIDR":"100.100.8.0/23"}}'
+    kubectl patch node s-sel-idc-kuber-ceph-3 -p '{"spec":{"podCIDR":"100.100.8.0/23"}}'
+    kubectl patch node s-sel-idc-kuber-worker-1 -p '{"spec":{"podCIDR":"100.100.8.0/23"}}'
+    kubectl patch node s-sel-idc-kuber-worker-2 -p '{"spec":{"podCIDR":"100.100.8.0/23"}}'
+    kubectl patch node s-sel-idc-kuber-worker-3 -p '{"spec":{"podCIDR":"100.100.8.0/23"}}'

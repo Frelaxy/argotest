@@ -1,0 +1,55 @@
+---
+
+- name: "purge wazuh-agent"
+  ansible.builtin.apt:
+    name: wazuh-agent
+    purge: true
+    state: absent
+  become: true
+
+- name: "Delete content & directory"
+  ansible.builtin.file:
+    path: /var/ossec/
+    state: absent
+  become: true
+
+- name: "copy wazuh-agent"
+  ansible.builtin.copy:
+    src: wazuh-agent_4.6.0-1_amd64.deb
+    dest: /tmp/wazuh-agent_4.6.0-1_amd64.deb
+
+- name: "install wazuh-agent"
+  shell: WAZUH_MANAGER='192.168.233.4' WAZUH_REGISTRATION_PASSWORD='Gh73gdhwHsbdf63hkap82BH' WAZUH_AGENT_GROUP='Linux,default,IDCRU' dpkg -i /tmp/wazuh-agent_4.6.0-1_amd64.deb
+  become: true
+
+
+- name: "Get directory listing"
+  become: true
+  find:
+    paths: /var/ossec/ruleset/sca/
+    patterns: '*'
+    hidden: yes
+  register: directory_content_result
+
+- name: "Remove directory content"
+  become: true
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ directory_content_result.files }}"
+
+- name: "param"
+  shell: |
+    echo "remoted.guess_agent_group=1" >> /var/ossec/etc/local_internal_options.conf
+    echo "wazuh_command.remote_commands=1" >> /var/ossec/etc/local_internal_options.conf
+    echo "sca.remote_commands=1" >> /var/ossec/etc/local_internal_options.conf
+    echo "agent.remote_conf=1" >> /var/ossec/etc/local_internal_options.conf
+  become: true
+
+- name: "systemctl"
+  ansible.builtin.systemd:
+    daemon_reload: true
+    state: started
+    name: wazuh-agent
+    enabled: true
+  become: true

@@ -1,0 +1,7 @@
+---
+
+- name: config sshd no-pass
+  become: true
+  ansible.builtin.shell: |
+    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+    systemctl restart sshd

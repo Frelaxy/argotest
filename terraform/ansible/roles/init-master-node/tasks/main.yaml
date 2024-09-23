@@ -1,0 +1,6 @@
+---
+
+- name: Initialize master node Kubernetes cluster using kubeadm
+  command: kubeadm init --control-plane-endpoint=192.168.55.64:6443 --upload-certs --pod-network-cidr="100.100.8.0/23" --service-cidr="100.100.12.0/23" --apiserver-cert-extra-sans="192.168.55.64,127.0.0.1,192.168.55.65,192.168.55.66,192.168.55.73"
+
+#--apiserver-advertise-address=192.168.55.64

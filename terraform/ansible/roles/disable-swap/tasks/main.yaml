@@ -1,0 +1,7 @@
+---
+
+- name: disable swap
+  become: true
+  ansible.builtin.shell: |
+    swapoff -a
+    sed -i '/^[^#].*swap/s/^/#/' /etc/fstab

@@ -1,0 +1,1 @@
+helm upgrade --install jenkins jenkins/jenkins -n jenkins -f values.yaml --create-namespace

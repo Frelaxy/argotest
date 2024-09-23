@@ -1,0 +1,27 @@
+---
+
+- name: copy squid cert
+  become: true
+  ansible.builtin.copy:
+    src: squid-ca.crt
+    dest: /home/adminpower/squid-ca.crt
+
+- name: set proxy
+  become: true
+  ansible.builtin.shell: |
+    export "no_proxy=.idcollect.ru,.svc,localhost,127.0.0.1,192.168.55.0/24,192.168.44.0/24,100.100.8.0/23,100.100.12.0/23"
+    echo "http_proxy=http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/" >> /etc/environment
+    echo "https_proxy=http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/" >> /etc/environment
+    echo "no_proxy=${no_proxy}" >> /etc/environment
+    cp /home/adminpower/squid-ca.crt /usr/local/share/ca-certificates/squid-ca.crt
+    cat /usr/local/share/ca-certificates/squid-ca.crt >> /etc/ssl/certs/ca-certificates.crt 
+    update-ca-certificates
+  args:
+    executable: /bin/bash
+  environment:
+    http_proxy: http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/
+    https_proxy: http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/
+
+
+
+# export "no_proxy=.idcollect.ru,.svc,localhost,10.96.0.0/16,192.168.55.0/24,192.168.44.0/24,192.168.44.25,127.0.0.1,192.168.55.41,192.168.55.60,192.168.55.70,192.168.55.64,192.168.55.65,192.168.55.66,192.168.55.67,192.168.55.68,192.168.55.69,$(echo 192.168.190.{1..255} | sed 's/ /,/g')"

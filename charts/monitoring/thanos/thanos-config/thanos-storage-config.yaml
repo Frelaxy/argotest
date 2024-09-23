@@ -1,0 +1,7 @@
+type: s3
+config:
+  bucket: thanos-prometheus-bucket-aa2490de-31e3-4a16-9b07-eeaf3dd50afb
+  endpoint: s3.idcollect.ru
+  region: us-east-1
+  access_key: 7435BIGXB9NEC0XH0N68
+  secret_key: ZicotoBcC05cajjsI4y2Jy0AiatquBvF7uFR3NLI

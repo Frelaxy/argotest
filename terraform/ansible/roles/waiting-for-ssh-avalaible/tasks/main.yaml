@@ -1,0 +1,10 @@
+---
+
+- name: waiting-for-ssh-avalaible
+  become: false
+  ansible.builtin.wait_for_connection:
+    timeout: 300
+  register: host_is_ready
+  until: host_is_ready is success
+  retries: 60
+  delay: 10

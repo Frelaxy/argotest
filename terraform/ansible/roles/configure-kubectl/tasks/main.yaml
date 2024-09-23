@@ -1,0 +1,18 @@
+---
+
+- name: copy kubectl config for root
+  shell: |
+    mkdir $HOME/.kube
+    cp /etc/kubernetes/admin.conf $HOME/.kube/config
+    mkdir /home/kiryl.masliukou/.kube
+    cp /etc/kubernetes/admin.conf /home/kiryl.masliukou/.kube/config
+
+- name: copy kubectl config for kiryl.masliukou
+  shell: |
+    mkdir /home/kiryl.masliukou/.kube
+    sudo cp /etc/kubernetes/admin.conf /home/kiryl.masliukou/.kube/config
+    sudo chown -R kiryl.masliukou:kiryl.masliukou /home/kiryl.masliukou/.kube
+
+# - name: config kubectl for local usage
+#   shell: |
+#     sed -i "s/192.168.55.64/{{ ansible_default_ipv4.address }}/g" $HOME/.kube/config

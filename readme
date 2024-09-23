@@ -1,0 +1,23 @@
+установить metrics api server и добавить --enable-aggregator-routing=true в kube-api-server
+
+
+kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
+
+
+k port-forward svc/rook-ceph-mgr-dashboard -n rook-ceph 7000
+
+
+kubectl config set-context --current --namespace=NAMESPACE
+
+
+kubectl create secret docker-registry -n jenkins regcred --docker-server=test-nexus.idcollect.ru --docker-username=prod --docker-password=veqxiV-2diqqe-nisdyz
+
+
+kubectl get secrets/monitoring-grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d
+
+
+PV cleanup https://github.com/ceph/ceph-csi/blob/devel/docs/resource-cleanup.md
+
+
+ceph tell osd.0 bench 12288000 4096 4194304 100
+
