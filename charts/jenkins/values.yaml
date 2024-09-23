@@ -39,7 +39,7 @@ controller:
     repository: "jenkins/jenkins"
 
     # -- Controller image tag override; i.e., tag: "2.440.1-jdk17"
-    # tag: 2.462.1
+    tag:
 
     # -- Controller image tag label
     tagLabel: jdk21
@@ -62,10 +62,10 @@ controller:
   numExecutors: 0
 
   # -- Sets the executor mode of the Jenkins node. Possible values are "NORMAL" or "EXCLUSIVE"
-  executorMode: "EXCLUSIVE"
+  executorMode: "NORMAL"
 
   # -- Append Jenkins labels to the controller
-  customJenkinsLabels: "controller"
+  customJenkinsLabels: []
 
   hostNetworking: false
 
@@ -78,7 +78,7 @@ controller:
     username: "admin"
     # -- Admin password created as a secret if `controller.admin.createSecret` is true
     # @default -- <random password>
-    password: "admin"
+    password: admin
 
     # -- The key in the existing admin secret containing the username
     userKey: jenkins-admin-user
@@ -123,6 +123,12 @@ controller:
   # Share process namespace to allow sidecar containers to interact with processes in other containers in the same pod
   shareProcessNamespace: false
 
+  # Service links might cause issue if running in a namespace with a large amount of services
+  # that might cause a slow startup when plugins are copied from ref to volume
+  # Set to true to keep previous behavior
+  # See https://github.com/kubernetes/kubernetes/issues/121787
+  enableServiceLinks: false
+
   # Overrides the init container default values
   # -- Resources allocation (Requests and Limits) for Init Container
   initContainerResources: {}
@@ -138,47 +144,25 @@ controller:
 
   # useful for i.e., http_proxy
   # -- Environment variables for Init Container
-  # initContainerEnv: []
   initContainerEnv: []
-    # - name: http_proxy
-    #   value: "http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"
-    # - name: https_proxy
-    #   value: "http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"
-    # - name: JAVA_OPTS
-    #   value: "-Dhttp.proxyHost=192.168.55.125 -Dhttp.proxyPort=3128 -Dhttps.proxyHost=192.168.55.125 -Dhttps.proxyPort=3128 -Dhttps.proxyUser=prodidc -Dhttps.proxyPassword=Duuow7TrN61hfr -Djavax.net.ssl.trustStore=/cacerts-share/cacerts -Djavax.net.ssl.trustStorePassword=changeit"
+  # initContainerEnv:
+  #   - name: http_proxy
+  #     value: "http://192.168.64.1:3128"
 
   # -- Environment variable sources for Jenkins Container
   containerEnvFrom: []
 
   # -- Environment variables for Jenkins Container
   containerEnv: []
-    # - name: http_proxy
-    #   value: "http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"
-    # - name: https_proxy
-    #   value: "http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"
-    # - name: no_proxy
-    #   value: "kc.idfinance.com,.svc,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster.local,*.svc.cluster.local,192.168.55.0/24,100.100.8.0/23,100.100.12.0/23"
+  #   - name: http_proxy
+  #     value: "http://192.168.64.1:3128"
 
   # Set min/max heap here if needed with "-Xms512m -Xmx512m"
   # -- Append to `JAVA_OPTS` env var
-  # javaOpts:
   javaOpts:
-    # -XX:InitialRAMPercentage=50.0
     -XX:MinRAMPercentage=80.0
     -XX:MaxRAMPercentage=80.0
-    # -Xms2g
-    # -Xmx2g
-    # -Dhttp.auth.preference=basic
-    # -Djdk.http.auth.tunneling.disabledSchemes=
-    # -Dhttp.proxyHost=192.168.55.125
-    # -Dhttp.proxyPort=3128
-    # -Dhttps.proxyHost=192.168.55.125
-    # -Dhttps.proxyPort=3128
-    # -Dhttps.proxyUser=prodidc
-    # -Dhttp.nonProxyHosts=kc.idfinance.com
-    # -Dhttps.proxyPassword=Duuow7TrN61hfr
-
-#   -- Append to `JENKINS_OPTS` env var
+  # -- Append to `JENKINS_OPTS` env var
   jenkinsOpts:
 
   # If you are using the ingress definitions provided by this chart via the `controller.ingress` block,
@@ -449,8 +433,8 @@ controller:
     - timestamper
     - ws-cleanup
     - kubernetes-credentials-provider
-    - pipeline-stage-view:2.34
-    - pipeline-graph-view:313.v1322ce83d680
+    - pipeline-stage-view
+    - pipeline-graph-view
 
   # If set to false, Jenkins will download the minimum required version of all dependencies.
   # -- Download the minimum required version or latest version of all dependencies
@@ -476,7 +460,7 @@ controller:
   overwritePluginsFromImage: true
 
   # Configures the restrictions for naming projects. Set this key to null or empty to skip it in the default config.
-  projectNamingStrategy: "standard"
+  projectNamingStrategy: standard
 
   # Useful with ghprb plugin. The OWASP plugin is not installed by default, please update controller.installPlugins.
   # -- Enable HTML parsing using OWASP Markup Formatter Plugin (antisamy-markup-formatter)
@@ -1288,8 +1272,6 @@ controller:
                   }
                 }
               }
-
-
     #  welcome-message: |
     #    jenkins:
     #      systemMessage: Welcome to our CI\CD server. This Jenkins is configured and managed 'as code'.
@@ -1306,21 +1288,22 @@ controller:
     # -- Jenkins Config as Code Security Realm-section
     securityRealm: |
       oic:
+        allowedTokenExpirationClockSkewSeconds: 0
         clientId: "test-jenkins"
         clientSecret: "sGXAL9ZE414GA6In88baWCaUq0RtovtH"
-        wellKnownOpenIDConfigurationUrl: "https://kc.idfinance.com/auth/realms/IDCRU"
-        tokenServerUrl: "https://kc.idfinance.com/auth/realms/IDCRU/protocol/openid-connect/token"
-        authorizationServerUrl: "https://kc.idfinance.com/auth/realms/IDCRU/protocol/openid-connect/auth"
-        scopes: "openid email microprofile-jwt profile jenkins-roles"
         disableSslVerification: false
-        endSessionEndpoint: "https://kc.idfinance.com/auth/realms/IDCRU/protocol/openid-connect"
-        escapeHatchEnabled: false
-        logoutFromOpenidProvider: false
-        tokenAuthMethod: "client_secret_post"
-        automanualconfigure: "manual"
-        userNameField: "preferred_username"
-        emailFieldName: "email"
+        fullNameFieldName: "preferred_username"
         groupsFieldName: "roles"
+        logoutFromOpenidProvider: false
+        userNameField: "preferred_username"
+        serverConfiguration:
+          manual:
+            authorizationServerUrl: "https://kc.idfinance.com/auth/realms/IDCRU/protocol/openid-connect/auth"
+            endSessionUrl: "https://kc.idfinance.com/auth/realms/IDCRU/protocol/openid-connect"
+            scopes: "openid email microprofile-jwt profile jenkins-roles"
+            tokenServerUrl: "https://kc.idfinance.com/auth/realms/IDCRU/protocol/openid-connect/token"
+            userInfoServerUrl: "https://kc.idfinance.com/auth/realms/IDCRU/protocol/openid-connect/userinfo"
+
 
     # Ignored if authorizationStrategy is defined in controller.JCasC.configScripts
     # -- Jenkins Config as Code Authorization Strategy-section
@@ -1396,27 +1379,11 @@ controller:
     configMapAnnotations: {}
 
   # -- Custom init-container specification in raw-yaml format
-  # customInitContainers: []
   customInitContainers: []
-  # - name: add-ca-certs
-  #   image: "jenkins/jenkins"
+  # - name: custom-init
+  #   image: "alpine:3"
   #   imagePullPolicy: Always
-  #   env:
-  #   - name: CA_CERTS_BASE64
-  #     value: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURXekNDQWtPZ0F3SUJBZ0lVVGE1c0M4ZGVncFltK3pDNVp2N01XZXpVRjBBd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1BURUxNQWtHQTFVRUJoTUNVbFV4RGpBTUJnTlZCQW9NQlVsRVExSlZNUjR3SEFZRFZRUUREQlZwWkdOdgpiR3hsWTNRdWNISnZlSGt1Ykc5allXd3dIaGNOTWpRd01qSXlNRGN5T0RNd1doY05NamN3TWpJeE1EY3lPRE13CldqQTlNUXN3Q1FZRFZRUUdFd0pTVlRFT01Bd0dBMVVFQ2d3RlNVUkRVbFV4SGpBY0JnTlZCQU1NRldsa1kyOXMKYkdWamRDNXdjbTk0ZVM1c2IyTmhiRENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQgpBSlhDMFVDUmhWR1dYVlhUVGlqYTM4UjBWWFE0ZlNzZmRLaWZUOWhRSWgxTVI3TFRGNGlacWwrUEVYS2c2anRwCmtDcFFyY1RScmJqUzBJVllCK1p5Vnozd2J3aUFsWVQybENaQkhQYVVNUzQ4RDg1akFlNVJBY2ZYZTJpLzRHdEUKYkFYaExZb2xQdE1JUlNmSFNTQ1hBd016L1o3SjNGQThiRXdBWFcxcFYycHB0TG4xemp0TWV3YkJBR3pKRGd1YwpkdktCZWRtTW9td3RqN1JqblY0NVlta0t0UW84eFNsWnBHOVVQV1A5c2RNS1A1TmN6eStTbnM4TUh5YmFTLzZDCmZXYnBXQVFTNmJCWUpEenZaa2RwaW9kT0g3RnZLUDJZd1Yxd2dnYW5aVGkxdXMyeGpFSUZSalRiOENpZGFzaHQKdUdhRjF5TFZ5TVVEU3puc3ZaSTJOcThDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRk1uM3ZXRlFXdXJ2LzlWbgo4aDV2SU03K2k2U0VNQjhHQTFVZEl3UVlNQmFBRk1uM3ZXRlFXdXJ2LzlWbjhoNXZJTTcraTZTRU1BOEdBMVVkCkV3RUIvd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBRHdXamhJQmtIbGZwV3UzYllQb000dWQKcHhLME5xbGhoMDdPS2x5a2NiQVMxY2hpcmpEQTJ4akIzdVh4Y0ZlczdNaUZRb2VMSzdLOEM0ZE9uNGF3eXlSMApwM002VmZFNk1SM2FPVU9IelF2SDAza0ZmUGpJQmVHMm4zM3doV3pPanN2SmF1TTl5NWVmWS85b3djSmxDNDdJCjZqZFlRQ2xaRW93OU1PdmxucnpyZXl3QnJiR1hGdjhYM3F0S21DNFEyRGc4M2VMc2lLWG1TZC90NWt1VnhwWFEKOThnZCtSSEw5QTJOeFJ3a1VoK3J2QmpEN0d3N05CSjg2TEtSazRVMUtaQ2VBZEpVUUdHU1AxV3RHS2ExM1VmRwpLdmltaFgrWWh6SU1yV1NieHQvWldLWGNPOHJIS3Z2VHFpWVJ0U1FLaTZrYmVrSEpXTkwzUGlMY3VyTlNsOTA9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
-  #   command: 
-  #   - "sh"
-  #   - "-c"
-  #   - >
-  #     echo $CA_CERTS_BASE64 | base64 -d > /tmp/custom-ca-certs.crt
-  #     && cat /etc/ssl/certs/ca-certificates.crt /tmp/custom-ca-certs.crt > /cacerts-share/ca-certificates.crt
-  #     && cp /opt/java/openjdk/lib/security/cacerts /cacerts-share/cacerts 
-  #     && chmod 644 /cacerts-share/cacerts
-  #     && ${JAVA_HOME}/bin/keytool -import -trustcacerts -alias custom-ca-certs -keystore /cacerts-share/cacerts -file /tmp/custom-ca-certs.crt -noprompt -storepass changeit
-    
-  #   volumeMounts:
-  #   - name: cacerts-share
-  #     mountPath: /cacerts-share
+  #   command: [ "uname", "-a" ]
 
   sidecars:
     configAutoReload:
@@ -1432,7 +1399,7 @@ controller:
         # -- Repository of the image that triggers the reload
         repository: kiwigrid/k8s-sidecar
         # -- Tag for the image that triggers the reload
-        tag: 1.27.5
+        tag: 1.27.6
       imagePullPolicy: IfNotPresent
       resources: {}
         #   limits:
@@ -1546,10 +1513,6 @@ controller:
   # ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
   # -- Update strategy for StatefulSet
   updateStrategy: {}
-    # type: RollingUpdate
-    # rollingUpdate:
-    #   maxSurge: 2
-    #   maxUnavailable: 0
 
   # -- Topology spread constraints
   topologySpreadConstraints: {}
@@ -1607,8 +1570,7 @@ controller:
     enabled: false
     # paths you want forwarded to the backend
     # ex /github-webhook
-    paths: 
-
+    paths: []
     # For Kubernetes v1.14+, use 'networking.k8s.io/v1beta1'
     # For Kubernetes v1.19+, use 'networking.k8s.io/v1'
     apiVersion: "extensions/v1beta1"
@@ -1618,13 +1580,13 @@ controller:
     # kubernetes.io/tls-acme: "true"
     # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
-    ingressClassName: nginx
+    # ingressClassName: nginx
     # configures the hostname e.g., jenkins-external.example.com
-    hostName: test-jenkins.idcollect.ru
-    tls: 
-    - secretName: wildcard-idcollect-ru-tls
-      hosts:
-        - test-jenkins.idcollect.ru
+    hostName:
+    tls:
+    # - secretName: jenkins-external.example.com
+    #   hosts:
+    #     - jenkins-external.example.com
 
   # If you're running on GKE and need to configure a backendconfig
   # to finish ingress setup, use the following values.
@@ -1716,11 +1678,11 @@ controller:
     # -- Enables HTTPS keystore on jenkins controller
     enable: false
     # -- Name of the secret that already has ssl keystore
-    jenkinsHttpsJksSecretName: "jenkins-https-jks"
+    jenkinsHttpsJksSecretName: ""
     # -- Name of the key in the secret that already has ssl keystore
     jenkinsHttpsJksSecretKey: "jenkins-jks-file"
     # -- Name of the secret that contains the JKS password, if it is not in the same secret as the JKS file
-    jenkinsHttpsJksPasswordSecretName: "jenkins-https-jks"
+    jenkinsHttpsJksPasswordSecretName: ""
     # -- Name of the key in the secret that contains the JKS password
     jenkinsHttpsJksPasswordSecretKey: "https-jks-password"
     disableSecretMount: false
@@ -1733,11 +1695,10 @@ controller:
     # -- Jenkins keystore filename which will appear under controller.httpsKeyStore.path
     fileName: "keystore.jks"
     # -- Jenkins keystore password
-    password: "changeit"
+    password: "password"
 
     # -- Base64 encoded Keystore content. Keystore must be converted to base64 then being pasted here
     jenkinsKeyStoreBase64Encoded:
-      # MIIE4gIBAzCCBIwGCSqGSIb3DQEHAaCCBH0EggR5MIIEdTCCBHEGCSqGSIb3DQEHBqCCBGIwggReAgEAMIIEVwYJKoZIhvcNAQcBMGYGCSqGSIb3DQEFDTBZMDgGCSqGSIb3DQEFDDArBBRAD+Qto848b1b/Q9rilv1dTuAdwwICJxACASAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEEokxmfTavpozO4g8TtLBKiAggPgm9BadXwKhxR+NiYX6uA2BifT/hSJlWwboyaj78pNbwdRthzXCjq9bn5ZN55TmOoq5+/ghL+3E91X7H0tJnpDif0pG0KLc7vpSK/B1F98iZtT13x1jkUVaF0RcpyUiEj7gKRCDxRtcbA0o4BkUerZB0+HqVHbmO35wb5WljHy3cA+k3He3OCVFeEZhpHZ6qjTGhESzjkyPJu7yjtu69RKSAN3BtrWF8z6OkXgG++7yavhz3mOc5w6fSA01dyBlo3qMI1/0n9XM8TkPkkfmCoCcTCmZSGpVMuhcRi5GqiUGCKQ/ZHu7fXghMHxJ8qFeeHNKFX797a7aXl10Rk7fjQd3Yinqdqu2oe7OJZhgaiPSJuHlDk+dfXKzrSJjooBbCa4/1hyrE3kTn4pukyOVsIpafDiLxnDJmvAVEM3wGd9/DTWhVV1SyniKtf5FNJ1JnYNlWv9i/Uq50UrAg+R6iJ4Z3tyra+vad7x1Ca0R6BLchpwLJ7kiafMmLZl6YKm9+A25tlPpcxPCQF2wRoSbh/ARPDOj9l9bm1arVd/5ZAQxKU8h4ezqKyvrkWI48fho4AUUsUbzitVNB3/gK2CxqAAwI2jru55cDCI4gNqsrcqJYdKhEjVRqp64M5RYzwxPxnoG9JzkI8+KcVw2BB351JSJYtGF3W7DbU8GQDSeIukP1c9EaLDZncMigbxMV75VYqR/qmBcwPmjNRwzIqEFyalIMavicVQI/d5uFfK3Ez0a+XbOovAJmkpeiwmI+lvTMKRSai3l8+xeLwWkGfcWYQSfuO5ih6eKGlyKJgSKIcQ+rn+TZcCSGOtY/RJ78+kVw7DzcJqpxgOJuwk90nivsFVCn6EieTM/VZt6S4gjgkZtuOcpAgFgQRwKSA4V6TLBOlg74GRME3ag01PbGyahAfvE5jOvbiJkL0NVOLn9Dn45KQoEcHKwPe91cgn8R0R6jcXkENiyM6Q1AyxQShVpvZ995T2R7vVDkqfZipusch+HCcL/LPcQearvlYjby1LWgZ6e02240tOLdA5ZnHL9Kb/m9cr3YWiH2eQTbhMdYtLT42VKXOf3rDFPBqUiEG+ebYpiSdpOJN2Pdu+xzPisJAEYR2cGzmPW4OESoUhBpzztX1qGd+y6rhLljpuIi68n57bvVz0yfsXjgHqXm9O6bRs9IiXYkVCLOTvAKTeXNtmaa0A1nOF+Kzrn5pMj0LtDkFHvKTk1jKqpQusQmDEjaCVV1mBMbikOoRA/AcDf7Mnj1mAH0kfzZSDesMgz1CUywrbz8VklY4RDlXTLcNFMSBOjNzwaN6gPccFcJvVD3G6cjswTTAxMA0GCWCGSAFlAwQCAQUABCDmgfQ1tMpg2TeKOyInJEuLvnj6C1yKG/LZX4wAa/sQeQQUlno8q66POyDKfKqkjCm+glt2H4gCAicQ
     # Convert keystore.jks files content to base64 > $ cat keystore.jks | base64
 #        /u3+7QAAAAIAAAABAAAAAQANamVua2luc2NpLmNvbQAAAW2r/b1ZAAAFATCCBP0wDgYKKwYBBAEq
 #        AhEBAQUABIIE6QbCqasvoHS0pSwYqSvdydMCB9t+VNfwhFIiiuAelJfO5sSe2SebJbtwHgLcRz1Z
@@ -1785,6 +1746,14 @@ agent:
   enabled: true
   # -- The name of the pod template to use for providing default values
   defaultsProviderTemplate: ""
+
+  # Useful for not including a serviceAccount in the template if `false`
+  # -- Use `serviceAccountAgent.name` as the default value for defaults template `serviceAccount`
+  useDefaultServiceAccount: true
+
+  # -- Override the default service account
+  # @default -- `serviceAccountAgent.name` if `agent.useDefaultServiceAccount` is `true`
+  serviceAccount:
 
   # For connecting to the Jenkins controller
   # -- Overrides the Kubernetes Jenkins URL
@@ -1873,17 +1842,6 @@ agent:
   # or simply to clean up the output to make it easier to read.
   showRawYaml: false
 
-  garbageCollection:
-    # -- When enabled, Jenkins will periodically check for orphan pods that have not been touched for the given timeout period and delete them.
-    enabled: false
-    # -- Namespaces to look at for garbage collection, in addition to the default namespace defined for the cloud. One namespace per line.
-    namespaces: ""
-    # namespaces: |-
-    #   namespaceOne
-    #   namespaceTwo
-    # -- Timeout value for orphaned pods
-    timeout: 300
-
   # You can define the volumes that you want to mount for this container
   # Allowed types are: ConfigMap, EmptyDir, EphemeralVolume, HostPath, Nfs, PVC, Secret
   # Configure the attributes as they appear in the corresponding Java class for that type
@@ -1897,10 +1855,10 @@ agent:
   #   mountPath: /var/myapp/myemptydir
   #   memory: false
   # - type: EphemeralVolume
-  #   mountPath: /home/jenkins
+  #   mountPath: /var/myapp/myephemeralvolume
   #   accessModes: ReadWriteOnce
   #   requestsSize: 10Gi
-  #   storageClassName: ceph-block-ssd
+  #   storageClassName: mystorageclass
   # - type: HostPath
   #   hostPath: /var/lib/containers
   #   mountPath: /var/myapp/myhostpath
@@ -1910,8 +1868,8 @@ agent:
   #   serverAddress: "192.0.2.0"
   #   serverPath: /var/lib/containers
   # - type: PVC
-  #   claimName: jenkins-agent-pvc
-  #   mountPath: /home/jenkins
+  #   claimName: mypvc
+  #   mountPath: /var/myapp/mypvc
   #   readOnly: false
   # - type: Secret
   #   defaultMode: "600"
@@ -1952,12 +1910,6 @@ agent:
   # Pod-wide environment, these vars are visible to any container in the agent pod
   # -- Environment variables for the agent Pod
   envVars: []
-  # - name: http_proxy
-  #   value: "http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"
-  # - name: https_proxy
-  #   value: "http://prodidc:Duuow7TrN61hfr@192.168.55.125:3128/"
-  # - name: no_proxy
-  #   value: "test-nexus.idcollect.ru,192.168.55.82,.svc,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster.local,*.svc.cluster.local,192.168.55.0/24,100.100.8.0/23,100.100.12.0/23"
   # - name: PATH
   #   value: /usr/local/bin
   # -- Mount a secret as environment variable
@@ -1975,7 +1927,6 @@ agent:
 
   # -- Command to execute when side container starts
   command:
-
   # -- Arguments passed to command to execute
   args: "${computer.jnlpmac} ${computer.name}"
   # -- Side container name
@@ -1988,6 +1939,17 @@ agent:
   containerCap: 3
   # -- Agent Pod base name
   podName: "jenkins-agent"
+
+  garbageCollection:
+    # -- When enabled, Jenkins will periodically check for orphan pods that have not been touched for the given timeout period and delete them.
+    enabled: false
+    # -- Namespaces to look at for garbage collection, in addition to the default namespace defined for the cloud. One namespace per line.
+    namespaces: ""
+    # namespaces: |-
+    #   namespaceOne
+    #   namespaceTwo
+    # -- Timeout value for orphaned pods
+    timeout: 300
 
   # -- Allows the Pod to remain active for reuse until the configured number of minutes has passed since the last step was executed on it
   idleMinutes: 0
@@ -2019,24 +1981,20 @@ agent:
   # Containers specified here are added to all agents. Set key empty to remove container from additional agents.
   # -- Add additional containers to the agents
   additionalContainers: []
-    # - name: add-ca-certs
-    #   image: "jenkins/inbound-agent"
-    #   imagePullPolicy: Always
-    #   env:
-    #   - name: CA_CERTS_BASE64
-    #     value: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURXekNDQWtPZ0F3SUJBZ0lVVGE1c0M4ZGVncFltK3pDNVp2N01XZXpVRjBBd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1BURUxNQWtHQTFVRUJoTUNVbFV4RGpBTUJnTlZCQW9NQlVsRVExSlZNUjR3SEFZRFZRUUREQlZwWkdOdgpiR3hsWTNRdWNISnZlSGt1Ykc5allXd3dIaGNOTWpRd01qSXlNRGN5T0RNd1doY05NamN3TWpJeE1EY3lPRE13CldqQTlNUXN3Q1FZRFZRUUdFd0pTVlRFT01Bd0dBMVVFQ2d3RlNVUkRVbFV4SGpBY0JnTlZCQU1NRldsa1kyOXMKYkdWamRDNXdjbTk0ZVM1c2IyTmhiRENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQgpBSlhDMFVDUmhWR1dYVlhUVGlqYTM4UjBWWFE0ZlNzZmRLaWZUOWhRSWgxTVI3TFRGNGlacWwrUEVYS2c2anRwCmtDcFFyY1RScmJqUzBJVllCK1p5Vnozd2J3aUFsWVQybENaQkhQYVVNUzQ4RDg1akFlNVJBY2ZYZTJpLzRHdEUKYkFYaExZb2xQdE1JUlNmSFNTQ1hBd016L1o3SjNGQThiRXdBWFcxcFYycHB0TG4xemp0TWV3YkJBR3pKRGd1YwpkdktCZWRtTW9td3RqN1JqblY0NVlta0t0UW84eFNsWnBHOVVQV1A5c2RNS1A1TmN6eStTbnM4TUh5YmFTLzZDCmZXYnBXQVFTNmJCWUpEenZaa2RwaW9kT0g3RnZLUDJZd1Yxd2dnYW5aVGkxdXMyeGpFSUZSalRiOENpZGFzaHQKdUdhRjF5TFZ5TVVEU3puc3ZaSTJOcThDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRk1uM3ZXRlFXdXJ2LzlWbgo4aDV2SU03K2k2U0VNQjhHQTFVZEl3UVlNQmFBRk1uM3ZXRlFXdXJ2LzlWbjhoNXZJTTcraTZTRU1BOEdBMVVkCkV3RUIvd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBRHdXamhJQmtIbGZwV3UzYllQb000dWQKcHhLME5xbGhoMDdPS2x5a2NiQVMxY2hpcmpEQTJ4akIzdVh4Y0ZlczdNaUZRb2VMSzdLOEM0ZE9uNGF3eXlSMApwM002VmZFNk1SM2FPVU9IelF2SDAza0ZmUGpJQmVHMm4zM3doV3pPanN2SmF1TTl5NWVmWS85b3djSmxDNDdJCjZqZFlRQ2xaRW93OU1PdmxucnpyZXl3QnJiR1hGdjhYM3F0S21DNFEyRGc4M2VMc2lLWG1TZC90NWt1VnhwWFEKOThnZCtSSEw5QTJOeFJ3a1VoK3J2QmpEN0d3N05CSjg2TEtSazRVMUtaQ2VBZEpVUUdHU1AxV3RHS2ExM1VmRwpLdmltaFgrWWh6SU1yV1NieHQvWldLWGNPOHJIS3Z2VHFpWVJ0U1FLaTZrYmVrSEpXTkwzUGlMY3VyTlNsOTA9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
-    #   command: 
-    #   - "sh"
-    #   - "-c"
-    #   - >
-    #     echo $CA_CERTS_BASE64 | base64 -d > /tmp/custom-ca-certs.crt
-    #     && cat /etc/ssl/certs/ca-certificates.crt /tmp/custom-ca-certs.crt > /cacerts-share/ca-certificates.crt
-    #     && cp /opt/java/openjdk/lib/security/cacerts /cacerts-share/cacerts 
-    #     && chmod 644 /cacerts-share/cacerts
-    #     && ${JAVA_HOME}/bin/keytool -import -trustcacerts -alias custom-ca-certs -keystore /cacerts-share/cacerts -file /tmp/custom-ca-certs.crt -noprompt -storepass changeit
-    #   volumeMounts:
-    #   - name: cacerts-share
-    #     mountPath: /cacerts-share
+  #  - sideContainerName: dind
+  #    image:
+  #      repository: docker
+  #      tag: dind
+  #    command: dockerd-entrypoint.sh
+  #    args: ""
+  #    privileged: true
+  #    resources:
+  #      requests:
+  #        cpu: 500m
+  #        memory: 1Gi
+  #      limits:
+  #        cpu: 1
+  #        memory: 2Gi
 
   # Useful when configuring agents only with the podTemplates value, since the default podTemplate populated by values mentioned above will be excluded in the rendered template.
   # -- Disable the default Jenkins Agent configuration
@@ -2171,24 +2129,12 @@ persistence:
   # -- SubPath for jenkins-home mount
   subPath:
   # -- Additional volumes
-
   volumes: []
-  # - name: cacerts-share
-  #   emptyDir: {}
-  # mounts:
-  # - mountPath: /etc/ssl/certs/ca-certificates.crt
-  #   name: cacerts-share
-  #   subPath: ca-certificates.crt
-  # - mountPath: /opt/java/openjdk/lib/security/cacerts
-  #   name: cacerts-share
-  #   subPath: cacerts
-    
-  # volumes: []
   #  - name: nothing
   #    emptyDir: {}
 
   # -- Additional mounts
-  # mounts: []
+  mounts: []
   #  - mountPath: /var/nothing
   #    name: nothing
   #    readOnly: true
