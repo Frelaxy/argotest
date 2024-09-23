@@ -1873,6 +1873,17 @@ agent:
   # or simply to clean up the output to make it easier to read.
   showRawYaml: false
 
+  garbageCollection:
+    # -- When enabled, Jenkins will periodically check for orphan pods that have not been touched for the given timeout period and delete them.
+    enabled: false
+    # -- Namespaces to look at for garbage collection, in addition to the default namespace defined for the cloud. One namespace per line.
+    namespaces: ""
+    # namespaces: |-
+    #   namespaceOne
+    #   namespaceTwo
+    # -- Timeout value for orphaned pods
+    timeout: 300
+
   # You can define the volumes that you want to mount for this container
   # Allowed types are: ConfigMap, EmptyDir, EphemeralVolume, HostPath, Nfs, PVC, Secret
   # Configure the attributes as they appear in the corresponding Java class for that type
