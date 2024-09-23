@@ -88,6 +88,10 @@ defaultRules:
   ## Set keep_firing_for for all alerts
   keepFiringFor: ""
 
+  node:
+    fsSelector: 'fstype!=""'
+    # fsSelector: 'fstype=~"ext[234]|btrfs|xfs|zfs"'
+
   ## Labels for default rules
   labels: {}
   ## Annotations for default rules
