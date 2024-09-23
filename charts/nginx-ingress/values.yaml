@@ -424,17 +424,17 @@ controller:
     extraLabels: {}
 
     ## The static IP address for the load balancer. Requires controller.service.type set to LoadBalancer. The cloud provider must support this feature.
-    loadBalancerIP: ""
+    loadBalancerIP: 192.168.55.73
 
     ## The ClusterIP for the Ingress Controller service, autoassigned if not specified.
     clusterIP: ""
 
     ## The list of external IPs for the Ingress Controller service.
-    externalIPs: 
-    - 192.168.55.73
-    - 192.168.55.64
-    - 192.168.55.65
-    - 192.168.55.66
+    externalIPs: ""
+    # - 192.168.55.73
+    # - 192.168.55.64
+    # - 192.168.55.65
+    # - 192.168.55.66
 
     ## The IP ranges (CIDR) that are allowed to access the load balancer. Requires controller.service.type set to LoadBalancer. The cloud provider must support this feature.
     loadBalancerSourceRanges: []
