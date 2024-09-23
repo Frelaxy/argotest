@@ -1,0 +1,62 @@
+loki:
+  storage:
+    type: 's3'
+    bucketNames:
+      chunks: loki-chunks-bucket-91b3bd5a-e6fa-49e6-95c6-c4543473c046
+      ruler: loki-ruler-bucket-1e57dc66-a95d-468a-88df-da5078d930d2
+      admin: loki-admin-bucket-6aea2ddf-b405-4ca3-b39d-2574e712682b
+    s3:
+      endpoint: rook-ceph-rgw-ceph-objectstore.rook-ceph.svc
+      region: us-east-1
+      secretAccessKey: QMLdxhWpUv6wYJBzX1uEJTsgeFzJMU1MSkFuzz2z
+      accessKeyId: WKX5X6GVB4Q45VIV03Z4
+      s3ForcePathStyle: true
+      insecure: true
+
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 2
+
+  schemaConfig:
+    configs:
+    - from: "2024-01-01"
+      store: tsdb
+      index:
+        prefix: loki_index_
+        period: 24h
+      object_store: s3
+      schema: v13
+
+  compactor:
+    working_directory: /var/loki/retention
+    compaction_interval: 30m
+    retention_enabled: true
+    retention_delete_delay: 2h
+    retention_delete_worker_count: 150
+    delete_request_store: s3
+
+  limits_config:
+    retention_period: 60d
+    # max_query_lookback: 24h
+
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+backend:
+  replicas: 2
+  persistence:
+    size: "5Gi"
+    storageClass: ceph-block-ssd
+
+write:
+  replicas: 2
+  persistence:
+    size: "5Gi"
+    storageClass: ceph-block-ssd
+
+read:
+  replicas: 2
