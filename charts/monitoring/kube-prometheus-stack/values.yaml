@@ -2292,7 +2292,14 @@ prometheusOperator:
     namespaceSelector: {}
     objectSelector: {}
 
+    mutatingWebhookConfiguration:
+      annotations: {}
+      #   argocd.argoproj.io/hook: PreSync
 
+    validatingWebhookConfiguration:
+      annotations: {}
+      #   argocd.argoproj.io/hook: PreSync
+      
     deployment:
       enabled: false
 
