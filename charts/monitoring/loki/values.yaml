@@ -46,6 +46,8 @@ chunksCache:
 resultsCache:
   enabled: false
 
+deploymentMode: SimpleScalable
+
 backend:
   replicas: 2
   persistence:
