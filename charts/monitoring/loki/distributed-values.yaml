@@ -1,70 +1,63 @@
 ---
 loki:
+  storage:
+    type: 's3'
+    bucketNames:
+      chunks: loki-chunks-bucket-91b3bd5a-e6fa-49e6-95c6-c4543473c046
+      ruler: loki-ruler-bucket-1e57dc66-a95d-468a-88df-da5078d930d2
+      admin: loki-admin-bucket-6aea2ddf-b405-4ca3-b39d-2574e712682b
+    s3:
+      endpoint: rook-ceph-rgw-ceph-objectstore.rook-ceph.svc
+      region: us-east-1
+      secretAccessKey: QMLdxhWpUv6wYJBzX1uEJTsgeFzJMU1MSkFuzz2z
+      accessKeyId: WKX5X6GVB4Q45VIV03Z4
+      s3ForcePathStyle: true
+      insecure: true
+
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 2
+
   schemaConfig:
     configs:
-      - from: 2024-04-01
-        store: tsdb
-        object_store: s3
-        schema: v13
-        index:
-          prefix: loki_index_
-          period: 24h
-  ingester:
-    chunk_encoding: snappy
-  tracing:
-    enabled: true
-  querier:
-    # Default is 4, if you have enough memory and CPU you can increase, reduce if OOMing
-    max_concurrent: 4
+    - from: "2024-01-01"
+      store: tsdb
+      index:
+        prefix: loki_index_
+        period: 24h
+      object_store: s3
+      schema: v13
 
-#gateway:
-#  ingress:
-#    enabled: true
-#    hosts:
-#      - host: FIXME
-#        paths:
-#          - path: /
-#            pathType: Prefix
+  compactor:
+    working_directory: /var/loki/retention
+    compaction_interval: 30m
+    retention_enabled: true
+    retention_delete_delay: 2h
+    retention_delete_worker_count: 150
+    delete_request_store: s3
 
-deploymentMode: Distributed
+  limits_config:
+    retention_period: 60d
+    # max_query_lookback: 24h
 
-ingester:
-  replicas: 3
-querier:
-  replicas: 3
-  maxUnavailable: 2
-queryFrontend:
-  replicas: 2
-  maxUnavailable: 1
-queryScheduler:
-  replicas: 2
-distributor:
-  replicas: 3
-  maxUnavailable: 2
-compactor:
-  replicas: 1
-indexGateway:
-  replicas: 2
-  maxUnavailable: 1
+chunksCache:
+  enabled: false
 
-bloomCompactor:
-  replicas: 0
-bloomGateway:
-  replicas: 0
+resultsCache:
+  enabled: false
 
-# Enable minio for storage
-minio:
-  enabled: true
-
-# Zero out replica counts of other deployment modes
 backend:
-  replicas: 0
-read:
-  replicas: 0
+  replicas: 2
+  persistence:
+    size: "5Gi"
+    storageClass: ceph-block-ssd
+
 write:
-  replicas: 0
+  replicas: 2
+  persistence:
+    size: "5Gi"
+    storageClass: ceph-block-ssd
 
-singleBinary:
-  replicas: 0
-
-
+read:
+  replicas: 2
