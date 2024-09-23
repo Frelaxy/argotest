@@ -39,6 +39,12 @@ loki:
   limits_config:
     retention_period: 60d
     # max_query_lookback: 24h
+    
+monitoring:
+  # Dashboards for monitoring Loki
+  dashboards:
+    # -- If enabled, create configmap with dashboards for monitoring Loki
+    enabled: false
 
 chunksCache:
   enabled: false
@@ -50,15 +56,15 @@ deploymentMode: SimpleScalable
 
 backend:
   replicas: 2
-  persistence:
-    size: "5Gi"
-    storageClass: ceph-block-ssd
+  # persistence:
+  #   size: "5Gi"
+  #   storageClass: ceph-block-ssd
 
 write:
   replicas: 2
-  persistence:
-    size: "5Gi"
-    storageClass: ceph-block-ssd
+  # persistence:
+  #   size: "5Gi"
+  #   storageClass: ceph-block-ssd
 
 read:
   replicas: 2
