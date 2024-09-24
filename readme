@@ -21,3 +21,4 @@ PV cleanup https://github.com/ceph/ceph-csi/blob/devel/docs/resource-cleanup.md
 
 ceph tell osd.0 bench 12288000 4096 4194304 100
 
+METALLB для loadbalancer
